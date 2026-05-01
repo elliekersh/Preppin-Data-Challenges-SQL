@@ -1,0 +1,9 @@
+SELECT iff(n.type = 'Veggie' OR n.type = 'Vegetarian', 'Vegetarian', 
+            iff(n.type = 'Meat-based' OR n.type = 'Meat based', 'Meat-based', n.type)) as meal_type
+        ,round(avg(p.price), 2) as "Average Price"
+        ,round(100*count(*)/ sum(count(*))over(), 0) as "Percent of Total"
+FROM pd2023_wk20_meal_nutritional_info n
+INNER JOIN pd2023_wk20_meal_prices p
+    ON n.meal_option=p.meal_option
+GROUP BY meal_type
+
