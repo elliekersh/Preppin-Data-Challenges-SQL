@@ -1,0 +1,22 @@
+with clean as (
+    select split_part(transaction_code, '-', 1) as bank
+        ,cast(split_part(transaction_date, '/', 2) as int) as month
+        ,sum(value) as value
+    from pd2023_wk01
+    group by bank, month
+)
+,ranks as (
+    select bank
+        ,month
+        ,rank() over(partition by month order by value desc) as rank
+        ,value
+    from clean
+    order by month desc, value desc
+)
+select avg(rank) over(partition by bank) as avg_rank_per_bank
+    ,avg(value) over(partition by rank) as avg_value_per_rank
+    ,bank
+    ,month
+    ,value
+    ,rank
+from ranks
