@@ -1,0 +1,37 @@
+// Filter transactions to DSB
+// Fix online or in person
+// Change transaction date to quarter
+// Sum transaction value
+with transactions as (
+    select iff(online_or_in_person = 1, 'Online', 'In-Person') as online_or_in_person
+        ,sum(value) as value
+        ,quarter(to_date(transaction_date, 'DD/MM/YYYY HH24:MI:SS')) as transaction_quarter
+    
+    from pd2023_wk01
+        where transaction_code like 'DSB%'
+    
+    group by transaction_quarter
+        ,online_or_in_person
+)
+//------------------------------------------------------------------------------------------
+// Pivot quarters
+// Remove Qs
+,targets as (
+    select online_or_in_person
+        ,replace(quarter, 'Q', '') as quarter
+        ,targets
+    from pd2023_wk03_targets
+        unpivot(targets for quarter in 
+            (Q1,Q2,Q3,Q4))
+)
+//-----------------------------------------------------------------------------------------
+
+select t.online_or_in_person
+    ,t.quarter
+    ,tr.value as value
+    ,t.targets as quarterly_targets
+    ,(tr.value - t.targets) as variance_to_target
+from targets t
+    inner join transactions tr
+        on tr.online_or_in_person=t.online_or_in_person
+        and tr.transaction_quarter=t.quarter
