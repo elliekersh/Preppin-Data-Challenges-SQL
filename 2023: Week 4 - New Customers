@@ -1,0 +1,55 @@
+// Unioning all tables
+with full_table as (
+SELECT *
+    ,"January" as month
+FROM pd2023_wk04_january
+UNION all
+SELECT *
+,"January" as month
+FROM pd2023_wk04_february
+UNION all
+SELECT *
+,"January" as month
+FROM pd2023_wk04_march
+UNION all
+SELECT *
+,"January" as month
+FROM pd2023_wk04_april
+UNION all
+SELECT *
+,"January" as month
+FROM pd2023_wk04_may
+UNION all
+SELECT *
+,"January" as month
+FROM pd2023_wk04_june
+UNION all
+SELECT *
+,"January" as month
+FROM pd2023_wk04_july
+UNION all
+SELECT *
+,"January" as month
+FROM pd2023_wk04_august
+UNION all
+SELECT *
+,"January" as month
+FROM pd2023_wk04_september
+UNION all
+SELECT *
+,"January" as month
+FROM pd2023_wk04_october
+UNION all
+SELECT *
+,"January" as month
+FROM pd2023_wk04_november
+UNION all
+SELECT *
+,"January" as month
+FROM pd2023_wk04_december
+)
+    
+select *
+from full_table
+    PIVOT(max(value) for demographic in ('Ethnicity', 'Account Type', 'Date of Birth')) 
+//)
