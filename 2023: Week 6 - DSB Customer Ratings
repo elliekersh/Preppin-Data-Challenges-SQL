@@ -1,0 +1,61 @@
+WITH mobile_unpivoted AS (
+    SELECT
+        customer_id,
+        REPLACE(rating_type, 'MOBILE_APP___', '') AS rating_type,
+        rating AS mobile_rating
+    FROM pd2023_wk06_dsb_customer_survey
+    UNPIVOT (
+        rating
+        FOR rating_type IN (
+            mobile_app___ease_of_use,
+            mobile_app___ease_of_access,
+            mobile_app___navigation,
+            mobile_app___likelihood_to_recommend
+        )
+    ) AS mobile
+
+)
+,online_unpivoted AS (
+    SELECT customer_id,
+            REPLACE(rating_type, 'ONLINE_INTERFACE___', '') AS rating_type,
+            rating AS online_rating
+    FROM pd2023_wk06_dsb_customer_survey
+    UNPIVOT (
+        rating
+        FOR rating_type IN (
+            online_interface___ease_of_use,
+            online_interface___ease_of_access,
+            online_interface___navigation,
+            online_interface___likelihood_to_recommend
+        )
+    ) AS online
+
+)
+, fandom AS (
+    SELECT m.customer_id,
+        CASE
+            WHEN AVG(m.mobile_rating)-AVG(o.online_rating) >= 2 THEN 'Mobile Superfans'
+            WHEN AVG(m.mobile_rating)-AVG(o.online_rating) >= 1 THEN 'Mobile Fans'
+            WHEN AVG(o.online_rating)-AVG(m.mobile_rating) >= 2 THEN 'Online Superfans'
+            WHEN AVG(o.online_rating)-AVG(m.mobile_rating) >= 1 THEN 'Online Fans'
+            ELSE 'Neutral'
+        END AS type_of_fan
+    FROM mobile_unpivoted m 
+    JOIN online_unpivoted o ON
+        m.customer_id=o.customer_id AND
+        m.rating_type=o.rating_type
+        
+    GROUP BY m.customer_id
+)
+
+SELECT type_of_fan,
+        ROUND(
+            COUNT(*) * 100
+            /
+            (SELECT COUNT(*)
+            FROM fandom)
+            ,1
+            )
+FROM fandom  
+GROUP BY type_of_fan;
+
