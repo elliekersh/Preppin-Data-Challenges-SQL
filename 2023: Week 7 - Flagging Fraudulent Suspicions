@@ -1,0 +1,45 @@
+WITH account_information AS (
+    SELECT account_number
+            ,a.account_type
+            ,s.value AS account_holder_id
+            ,a.balance_date
+            ,a.balance
+    FROM pd2023_wk07_account_information a,
+    LATERAL SPLIT_TO_TABLE(a.account_holder_id, ',') s
+    WHERE a.account_holder_id IS NOT NULL
+)
+,account_holders AS (
+    SELECT account_holder_id
+            ,name
+            ,date_of_birth
+            ,CONCAT('0',contact_number) AS contact_number
+    FROM pd2023_wk07_account_holders
+)
+
+SELECT 
+        tp.transaction_id
+        ,tp.account_to
+        ,td.transaction_date
+        ,td.value
+        ,ai.account_number
+        ,ai.account_type
+        ,ai.account_holder_id
+        ,ai.balance_date
+        ,ai.balance
+        ,ah.name
+        ,ah.date_of_birth
+        ,ah.contact_number
+FROM pd2023_wk07_transaction_path tp
+
+JOIN pd2023_wk07_transaction_detail td ON
+    tp.transaction_id=td.transaction_id
+JOIN account_information ai ON
+    tp.account_from=ai.account_number
+JOIN account_holders ah ON
+    ai.account_holder_id=ah.account_holder_id
+WHERE 
+        td.cancelled_='N' 
+        AND td.value>1000
+        AND ai.account_type!='Platinum'
+    
+;
